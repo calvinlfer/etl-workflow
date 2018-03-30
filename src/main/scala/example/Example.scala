@@ -1,9 +1,9 @@
 package example
 
+import com.experiments.etl.Extract._
+import com.experiments.etl.Load._
+import com.experiments.etl.Transform._
 import com.experiments.etl._
-import Load._
-import Extract._
-import Transform._
 
 object Example extends App {
   // I wish it was Extract[Nothing, A] but invariance :-(
@@ -25,35 +25,35 @@ object Example extends App {
   val intExtract: PureExtract[Int] = pureExtract(10)
   val strExtract: PureExtract[String] = pureExtract("hello")
 
-  val multiExtract: PureExtract[(Int, String)] = syncExtractMergeTuple(intExtract, strExtract)
+  val multiExtract: PureExtract[(Int, String)] = intExtract zip strExtract
 
   val fancyETLPipeline: ETLPipeline[(Int, String), (Int, String), String, Unit] =
     multiExtract ~> transform { case (int, str) => str } ~> consoleLoad[String]
 
   // fancier pipeline with multiple sources and sinks
-  val multiLoad: Load[(Int, String), (Unit, Unit)] = syncLoadMergeTuple(consoleLoad[Int], consoleLoad[String])
+  val multiLoad: Load[(Int, String), (Unit, Unit)] = consoleLoad[Int] zip consoleLoad[String]
   multiExtract ~> transform(identity) ~> multiLoad
 
   // it becomes messy without HLists :-(
   val doubleExtract: PureExtract[Double] = pureExtract(1.0)
-  val moreMultiExtract: PureExtract[((Int, String), Double)] =
-    syncExtractMergeTuple(syncExtractMergeTuple(intExtract, strExtract), doubleExtract)
+  val moreMultiExtract: Extract[((Int, String), Double), ((Int, String), Double)] = intExtract zip strExtract zip doubleExtract
 
   val moreMultiLoad: Load[((Int, String), Boolean), ((Unit, Unit), Unit)] =
-    syncLoadMergeTuple(syncLoadMergeTuple(consoleLoad[Int], consoleLoad[String]), consoleLoad[Boolean])
+    consoleLoad[Int] zip consoleLoad[String] zip consoleLoad[Boolean]
 
   val messyPipeline = {
-    def fn1(t: ((Int, String), Double)): ((Int, String), Boolean) = {
-      val ((int, str), double) = t
-      ((int + 1, str + "!"), double == 1)
+    def fn1(t: (Int, String, Double)): (Int, String, Boolean) = {
+      val (int, str, double) = t
+      (int + 1, str + "!", double == 1)
     }
 
-    def fn2(t: ((Int, String), Boolean)): ((Int, String), Boolean) = {
-      val ((int, str), bool) = t
+    def fn2(t: (Int, String, Boolean)): ((Int, String), Boolean) = {
+      val (int, str, bool) = t
       ((int + 1, str + "!"), !bool)
     }
 
-    moreMultiExtract ~> transform(fn1) ~> transform(fn2) ~> moreMultiLoad
+    import cats.syntax.functor._
+    moreMultiExtract.map { case ((i, s), d) => (i, s, d) } ~> transform(fn1) ~> transform(fn2) ~> moreMultiLoad
   }
 
   messyPipeline.unsafeRunSync(input = ((0, "doesn't matter"), 1.0))
