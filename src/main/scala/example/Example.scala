@@ -1,6 +1,5 @@
 package example
 
-import com.experiments.etl.Extract._
 import com.experiments.etl.Transform._
 import com.experiments.etl._
 
@@ -26,4 +25,14 @@ object Example extends App {
 
   val fancyETLPipeline: ETLPipeline[(Int, String), String, Unit] =
     multiExtract ~> lift { case (int, str) => str } ~> consoleLoad[String]
+
+  fancyETLPipeline.unsafeRunSync()
+
+  // pipeline with multiple sources (Extracts) and sinks (Loads)
+  import cats.syntax.functor._
+  val multiLoad: Load[String, Unit] = (consoleLoad[String] zip consoleLoad[String]).map { case (_, _) => () }
+
+  val evenFancierPipeline = multiExtract ~> lift { case (int, str) => str + "!!!!" } ~> multiLoad
+
+  evenFancierPipeline.unsafeRunSync()
 }
