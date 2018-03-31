@@ -1,5 +1,6 @@
 package example
 
+import cats.syntax.functor._
 import com.experiments.etl.Transform._
 import com.experiments.etl._
 
@@ -29,7 +30,6 @@ object Example extends App {
   fancyETLPipeline.unsafeRunSync()
 
   // pipeline with multiple sources (Extracts) and sinks (Loads)
-  import cats.syntax.functor._
   val multiLoad: Load[String, Unit] = (consoleLoad[String] zip consoleLoad[String]).map { case (_, _) => () }
 
   val evenFancierPipeline = multiExtract ~> lift { case (int, str) => str + "!!!!" } ~> multiLoad
