@@ -4,8 +4,9 @@ Here are some examples that will help you to get started
 
 ## Linear Pipelines ##
 
-Here is an example of how to create a simple Extract-Load pipeline where data flows from an Extract source to a Load 
-sink.
+Here is an example of how to create a simple Extract-Transform-Load pipeline where data flows from an `Extract` source 
+through to a set of `Transforme`rs that operate on the data and then to a `Load` sink thereby creating an `ETLPipeline`
+which can be run to begin the workflow.
 
 ```tut
 import com.experiments.etl._
@@ -37,6 +38,36 @@ val consoleLoad: Load[String, Unit] = new Load[String, Unit] {
 val etlPipeline = tenExtract ~> transform ~> consoleLoad
 
 // run ETL pipeline
-import ETLPipeline._
 etlPipeline.unsafeRunSync()
+```
+
+#### Aside ####
+**ETL DSL** places a heavy emphasis on type-safety so you cannot hook up a `Extract` which produces a `String` to a `Load` 
+which expects an `Int`.
+
+```tut
+import com.experiments.etl._
+val stringExtract = new Extract[String] {
+    override def produce: String = "type-safety is one of the primary concerns"
+}
+
+val intLoad = new Load[Int, Unit] {
+    def load(in: Int): Unit = println(in)
+}
+```
+
+This will cause a *compile-time error* because you cannot connect an `Extract[String]` to a `Load[Int]`:
+
+```tut:fail
+stringExtract ~> intLoad
+```
+
+Only an `Extract[String]` can be connected to a `Load[String]`: 
+
+```tut
+val stringLoad = new Load[String, Unit] {
+    def load(in: String): Unit = println(in)
+}
+
+stringExtract ~> stringLoad
 ```
