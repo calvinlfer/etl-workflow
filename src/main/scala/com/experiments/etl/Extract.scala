@@ -2,39 +2,31 @@ package com.experiments.etl
 
 import cats.Functor
 
-trait Extract[-Config, +A] {
-  def extract(c: Config): A
+trait Extract[A] {
+  def produce: A
 }
 
 object Extract {
-  implicit class ExtractOps[Config, A](e: Extract[Config, A]) {
-    def ~>[B](t: Transform[A, B]): ExtractTransform[Config, A, B] =
-      new ExtractTransform[Config, A, B] {
-        override def extract(c: Config): A = e.extract(c)
-        override def transform(a: A): B = t.transform(a)
+  implicit class ExtractOps[A](e: Extract[A]) {
+    def ~>[B](t: Transform[A, B]): ExtractTransform[A, B] =
+      new ExtractTransform[A, B] {
+        override def extract: Extract[A] = e
+        override def transform: Transform[A, B] = t
       }
 
-    def zip[BConfig, B, CConfig, C](e1: Extract[BConfig, B]): Extract[(Config, BConfig), (A, B)] =
+    def zip[BConfig, B, CConfig, C](e1: Extract[B]): Extract[(A, B)] =
       syncExtractMergeTuple(e, e1)
   }
 
-  implicit def extractOutputFunctor[Config]: Functor[Extract[Config, ?]] = new Functor[Extract[Config, ?]] {
-    override def map[A, B](fa: Extract[Config, A])(f: A => B): Extract[Config, B] = new Extract[Config, B] {
-      override def extract(c: Config): B = {
-        val a = fa.extract(c)
-        val b = f(a)
-        b
-      }
+  private def syncExtractMergeTuple[A, B](e1: Extract[A], e2: Extract[B]): Extract[(A, B)] =
+    new Extract[(A, B)] {
+      override def produce: (A, B) = (e1.produce, e2.produce)
     }
-  }
 
-  private def syncExtractMergeTuple[AConfig, A, BConfig, B](e1: Extract[AConfig, A], e2: Extract[BConfig, B]): Extract[(AConfig, BConfig), (A, B)] =
-    new Extract[(AConfig, BConfig), (A, B)] {
-      override def extract(abConfig: (AConfig, BConfig)): (A, B) = {
-        val (aConfig, bConfig) = abConfig
-        val a = e1.extract(aConfig)
-        val b = e2.extract(bConfig)
-        (a, b)
+  implicit val functorForExtract: Functor[Extract] = new Functor[Extract] {
+    override def map[A, B](fa: Extract[A])(f: A => B): Extract[B] =
+      new Extract[B] {
+        override def produce: B = f(fa.produce)
       }
-    }
+  }
 }

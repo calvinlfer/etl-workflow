@@ -1,20 +1,32 @@
 package com.experiments.etl
-trait Load[-B, +Status] {
+
+import cats.Functor
+
+trait Load[B, Status] {
   def load(b: B): Status
 }
 
 object Load {
   implicit class LoadOps[A, AStatus](l: Load[A, AStatus]) {
-    def zip[B, BStatus](l1: Load[B, BStatus]): Load[(A, B), (AStatus, BStatus)] = syncLoadMergeTuple(l, l1)
+    def zip[OtherStatus](l1: Load[A, OtherStatus]): Load[A, (AStatus, OtherStatus)] =
+      new Load[A, (AStatus, OtherStatus)] {
+        override def load(a: A): (AStatus, OtherStatus) = {
+          val aStatus = l.load(a)
+          val bStatus = l1.load(a)
+          (aStatus, bStatus)
+        }
+      }
   }
 
-  private def syncLoadMergeTuple[A, AStatus, B, BStatus](la: Load[A, AStatus], lb: Load[B, BStatus]): Load[(A, B), (AStatus, BStatus)] =
-    new Load[(A, B), (AStatus, BStatus)] {
-      override def load(ab: (A, B)): (AStatus, BStatus) = {
-        val (a: A, b: B) = ab
-        val aStatus = la.load(a)
-        val bStatus = lb.load(b)
-        (aStatus, bStatus)
-      }
+  implicit def functorForLoad[FixedInput]: Functor[Load[FixedInput, ?]] =
+    new Functor[Load[FixedInput, ?]] {
+      override def map[A, B](fa: Load[FixedInput, A])(f: A => B): Load[FixedInput, B] =
+        new Load[FixedInput, B] {
+          override def load(in: FixedInput): B = {
+            val a = fa.load(in)
+            val b = f(a)
+            b
+          }
+        }
     }
 }
