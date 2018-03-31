@@ -56,14 +56,13 @@ val intLoad = new Load[Int, Unit] {
 }
 ```
 
-The following will cause a *compile-time error* because you cannot connect an `Extract[String]` to a `Load[Int]`
+The following will cause a *compile-time error* because you cannot connect an `Extract[String]` to a `Load[Int]`:
 
 ```tut:fail
-
 stringExtract ~> intLoad
 ```
 
-Only an `Extract[String]` can be connected to a `Load[String]`
+Only an `Extract[String]` can be connected to a `Load[String]`:
 
 ```tut
 val stringLoad = new Load[String, Unit] {
