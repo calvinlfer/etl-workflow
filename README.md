@@ -32,3 +32,9 @@ TODO
 
 ## Examples ##
 See [here](src/main/tut/Examples.md) for examples on how to get started
+
+### Inspiration ###
+
+- [Mario](https://github.com/intentmedia/mario)
+- [Akka Streams](https://doc.akka.io/docs/akka/2.5/stream/index.html)
+- [Monix Observables](https://monix.io)

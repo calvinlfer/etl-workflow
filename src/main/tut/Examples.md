@@ -2,10 +2,10 @@
 
 Here are some examples that will help you to get started
 
-## Linear Pipelines ##
+### Linear Pipelines ###
 
 Here is an example of how to create a simple Extract-Transform-Load pipeline where data flows from an `Extract` source 
-through to a set of `Transforme`rs that operate on the data and then to a `Load` sink thereby creating an `ETLPipeline`
+through to a set of `Transformer`s that operate on the data and then to a `Load` sink thereby creating an `ETLPipeline`
 which can be run to begin the workflow.
 
 ```tut
@@ -69,5 +69,39 @@ val stringLoad = new Load[String, Unit] {
     def load(in: String): Unit = println(in)
 }
 
-stringExtract ~> stringLoad
+val etlPipeline = stringExtract ~> stringLoad
+etlPipeline.unsafeRunSync()
+```
+
+### Complex Pipelines ###
+
+Here is an example of how to create a pipeline that stitches together multiple `Extract` data sources and flows data to
+through a single `Load` sink.
+
+```tut
+import com.experiments.etl._
+import cats.syntax.functor._
+
+// An easy way to build an Extract[A] which takes a value you provide and pushes it down the pipeline
+def pureExtract[A](a: => A): Extract[A] = new Extract[A] {
+    override def produce: A = a
+}
+
+val intExtract: Extract[Int] = pureExtract(10)
+val strExtract: Extract[String] = pureExtract("hello")
+val dblExtract: Extract[Double] = pureExtract(20.0)
+
+// stitch and remove extra tuple nesting
+val stitchedExtract: Extract[(Int, String, Double)] = 
+    (intExtract zip strExtract zip dblExtract).map { case ((int, str), dbl) => (int, str, dbl) } 
+    
+// Load sink which consumes strings
+val consoleLoad: Load[String, Unit] = new Load[String, Unit] {
+    def load(in: String): Unit = println(in)
+}
+
+val transform: Transform[(Int, String, Double), String] = lift { case (int, str, dbl) => s"$int $str! $dbl" }
+
+val etlPipeline = stitchedExtract ~> transform ~> consoleLoad
+etlPipeline.unsafeRunSync()
 ```
