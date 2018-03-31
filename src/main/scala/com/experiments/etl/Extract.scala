@@ -1,25 +1,32 @@
 package com.experiments.etl
 
-trait Extract[Config, A] {
-  def in: Config
-  def out: A
+import cats.Functor
+
+trait Extract[A] {
+  def produce: A
 }
 
 object Extract {
-  implicit class ExtractOps[Config, A](e: Extract[Config, A]) {
-    def ~>[B](t: Transform[A, B]): ExtractTransform[Config, A, B] =
-      new ExtractTransform[Config, A, B] {
-        override def extract: Extract[Config, A] = e
+  implicit class ExtractOps[A](e: Extract[A]) {
+    def ~>[B](t: Transform[A, B]): ExtractTransform[A, B] =
+      new ExtractTransform[A, B] {
+        override def extract: Extract[A] = e
         override def transform: Transform[A, B] = t
       }
 
-    def zip[BConfig, B, CConfig, C](e1: Extract[BConfig, B]): Extract[(Config, BConfig), (A, B)] =
+    def zip[BConfig, B, CConfig, C](e1: Extract[B]): Extract[(A, B)] =
       syncExtractMergeTuple(e, e1)
   }
 
-  private def syncExtractMergeTuple[AConfig, A, BConfig, B](e1: Extract[AConfig, A], e2: Extract[BConfig, B]): Extract[(AConfig, BConfig), (A, B)] =
-    new Extract[(AConfig, BConfig), (A, B)] {
-      override def in: (AConfig, BConfig) = (e1.in, e2.in)
-      override def out: (A, B) = (e1.out, e2.out)
+  private def syncExtractMergeTuple[A, B](e1: Extract[A], e2: Extract[B]): Extract[(A, B)] =
+    new Extract[(A, B)] {
+      override def produce: (A, B) = (e1.produce, e2.produce)
     }
+
+  implicit val functorForExtract: Functor[Extract] = new Functor[Extract] {
+    override def map[A, B](fa: Extract[A])(f: A => B): Extract[B] =
+      new Extract[B] {
+        override def produce: B = f(fa.produce)
+      }
+  }
 }
