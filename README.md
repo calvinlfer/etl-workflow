@@ -1,8 +1,8 @@
 # ETL DSL _(beta)_ #
 
-**ETL DSL** is a simple and *opinionated* way to write type-safe Extract-Transform-Load (**ETL**) pipelines. This Domain 
-Specific Language (DSL) if flexible enough to create linear pipelines which involve a single Extract source and Load 
-sink 
+**ETL DSL** is a simple and *opinionated* way to help you write/structure type-safe Extract-Transform-Load (**ETL**) 
+pipelines. This Domain Specific Language (DSL) if flexible enough to create linear pipelines which involve a single 
+Extract source and Load sink 
 
 ```
 Extract source A ~> Transform A to B ~> Load B (sink 1)
