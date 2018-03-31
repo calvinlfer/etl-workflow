@@ -2,8 +2,25 @@
 
 **ETL DSL** is a simple and *opinionated* way to write type-safe Extract-Transform-Load (**ETL**) pipelines. This Domain 
 Specific Language (DSL) if flexible enough to create linear pipelines which involve a single Extract source and Load 
-sink all the way to stitching multiple Extract sources together and flowing the data through to multiple Load Sinks. It
-is built on an immutable and functional architecture where side-effects are executed at the end-of-the-world when the 
+sink 
+
+```
+Extract source A ~> Transform A to B ~> Load B (sink 1)
+```
+
+all the way to stitching multiple Extract sources together and flowing the data through to multiple Load sinks
+
+```
+
+Extract source A ~>                               ~> Load D (sink 1)
+                   \                             /
+Extract source B    ~> Transform (A, B, C) to D ~>   Load D (sink 2)
+                   /                             \
+Extract source C ~>                               ~> Load D (sink 3)
+
+``` 
+
+It is built on an immutable and functional architecture where side-effects are executed at the end-of-the-world when the 
 pipeline is run. 
 
 This is intended to be used in conjunction with Spark (especially for doing ETL) in order to minimize boilerplate and 
