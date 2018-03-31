@@ -2,7 +2,7 @@ package com.experiments.etl
 
 import cats.Functor
 
-trait Load[B, Status] {
+trait Load[-B, +Status] {
   def load(b: B): Status
 }
 

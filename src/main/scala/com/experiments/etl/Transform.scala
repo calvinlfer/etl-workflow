@@ -1,6 +1,6 @@
 package com.experiments.etl
 
-trait Transform[A, B] {
+trait Transform[-A, +B] {
   def transform(a: A): B
 }
 

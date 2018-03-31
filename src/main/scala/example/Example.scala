@@ -24,15 +24,19 @@ object Example extends App {
 
   val multiExtract: Extract[(Int, String)] = intExtract zip strExtract
 
+  def transformFn: Transform[(Int, String), String] = lift { case (int, str) => str }
   val fancyETLPipeline: ETLPipeline[(Int, String), String, Unit] =
-    multiExtract ~> lift { case (int, str) => str } ~> consoleLoad[String]
+    multiExtract ~> transformFn ~> consoleLoad[String]
 
   fancyETLPipeline.unsafeRunSync()
 
   // pipeline with multiple sources (Extracts) and sinks (Loads)
   val multiLoad: Load[String, Unit] = (consoleLoad[String] zip consoleLoad[String]).map { case (_, _) => () }
-
-  val evenFancierPipeline = multiExtract ~> lift { case (int, str) => str + "!!!!" } ~> multiLoad
+  val anotherTransformFn: Transform[(Int, String), String] = lift { case (int, str) => str + "!!!!" }
+  val evenFancierPipeline = multiExtract ~> anotherTransformFn ~> multiLoad
 
   evenFancierPipeline.unsafeRunSync()
+
+  // super simple pipeline (Extract Load)
+  strExtract ~> consoleLoad[String] unsafeRunSync()
 }

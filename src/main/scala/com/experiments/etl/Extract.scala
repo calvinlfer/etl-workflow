@@ -2,7 +2,7 @@ package com.experiments.etl
 
 import cats.Functor
 
-trait Extract[A] {
+trait Extract[+A] {
   def produce: A
 }
 
@@ -13,6 +13,12 @@ object Extract {
         override def extract: Extract[A] = e
         override def transform: Transform[A, B] = t
       }
+
+    def ~>[AStatus](l: Load[A, AStatus]): ETLPipeline[A, A, AStatus] = new ETLPipeline[A, A, AStatus] {
+      override def extract: Extract[A] = e
+      override def transform: Transform[A, A] = Transform.lift(identity)
+      override def load: Load[A, AStatus] = l
+    }
 
     def zip[BConfig, B, CConfig, C](e1: Extract[B]): Extract[(A, B)] =
       syncExtractMergeTuple(e, e1)
