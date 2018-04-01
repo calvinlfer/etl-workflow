@@ -4,7 +4,7 @@ import cats.{ Functor, Monad }
 
 import scala.annotation.tailrec
 
-trait ETLPipeline[FinStatus] {
+trait ETLPipeline[+FinStatus] {
   def execute(): FinStatus
 }
 
