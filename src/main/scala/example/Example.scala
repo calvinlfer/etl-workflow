@@ -1,7 +1,6 @@
 package example
 
 import cats.syntax.functor._
-import com.experiments.etl.Transform._
 import com.experiments.etl._
 
 object Example extends App {
@@ -13,8 +12,8 @@ object Example extends App {
     override def load(a: A): Unit = println(a)
   }
   // simple pipeline
-  val etlPipeline: ETLPipeline[Int, String, Unit] =
-    pureExtract(10) ~> lift { x: Int => x + 10 } ~> lift { x: Int => x.toString + "!" } ~> consoleLoad[String]
+  val etlPipeline: ETLPipeline[Unit] =
+    pureExtract(10) via Transform[Int, Int] { x: Int => x + 10 } via Transform[Int, String] { x: Int => x.toString + "!" } to consoleLoad[String]
 
   etlPipeline.unsafeRunSync()
 
@@ -24,19 +23,19 @@ object Example extends App {
 
   val multiExtract: Extract[(Int, String)] = intExtract zip strExtract
 
-  def transformFn: Transform[(Int, String), String] = lift { case (int, str) => str }
-  val fancyETLPipeline: ETLPipeline[(Int, String), String, Unit] =
-    multiExtract ~> transformFn ~> consoleLoad[String]
+  def transformFn: Transform[(Int, String), String] = Transform { case (int, str) => str }
+  val fancyETLPipeline: ETLPipeline[Unit] =
+    multiExtract via transformFn to consoleLoad[String]
 
   fancyETLPipeline.unsafeRunSync()
 
   // pipeline with multiple sources (Extracts) and sinks (Loads)
   val multiLoad: Load[String, Unit] = (consoleLoad[String] zip consoleLoad[String]).map { case (_, _) => () }
-  val anotherTransformFn: Transform[(Int, String), String] = lift { case (int, str) => str + "!!!!" }
-  val evenFancierPipeline = multiExtract ~> anotherTransformFn ~> multiLoad
+  val anotherTransformFn: Transform[(Int, String), String] = Transform { case (int, str) => str + "!!!!" }
+  val evenFancierPipeline = multiExtract via anotherTransformFn to multiLoad
 
   evenFancierPipeline.unsafeRunSync()
 
   // super simple pipeline (Extract Load)
-  strExtract ~> consoleLoad[String] unsafeRunSync()
+  strExtract to consoleLoad[String] unsafeRunSync()
 }

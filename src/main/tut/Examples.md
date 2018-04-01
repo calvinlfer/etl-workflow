@@ -18,16 +18,13 @@ def pureExtract[A](a: => A): Extract[A] = new Extract[A] {
 
 val tenExtract: Extract[Int] = pureExtract(10)
 
-// provides an easy way to lift normal functions to work in pipelines
-import Transform._
-
 // convert an int to a double and then a string and then add an exclamation mark
-val toDbl: Transform[Int, Double] = lift(i => i.toDouble)
-val toStr: Transform[Double, String] = lift(d => d.toString)
-val exclaim: Transform[String, String] = lift(s => s + "!")
+val toDbl: Transform[Int, Double] = Transform(i => i.toDouble)
+val toStr: Transform[Double, String] = Transform(d => d.toString)
+val exclaim: Transform[String, String] = Transform(s => s + "!")
 
 // compose transforms together
-val transform: Transform[Int, String] = toDbl ~> toStr ~> exclaim
+val transform: Transform[Int, String] = toDbl via toStr via exclaim
 
 // load data to the screen
 val consoleLoad: Load[String, Unit] = new Load[String, Unit] {
@@ -35,18 +32,17 @@ val consoleLoad: Load[String, Unit] = new Load[String, Unit] {
 }
 
 // Create ETL pipeline
-val etlPipeline = tenExtract ~> transform ~> consoleLoad
+val etlPipeline = tenExtract via transform to consoleLoad
 
 // run ETL pipeline
 etlPipeline.unsafeRunSync()
 ```
 
 #### Aside ####
-**ETL DSL** places a heavy emphasis on type-safety so you cannot hook up a `Extract` which produces a `String` to a `Load` 
+**ETL Workflow** places a heavy emphasis on type-safety so you cannot hook up a `Extract` which produces a `String` to a `Load` 
 which expects an `Int`.
 
 ```tut
-import com.experiments.etl._
 val stringExtract = new Extract[String] {
     override def produce: String = "type-safety is one of the primary concerns"
 }
@@ -59,7 +55,7 @@ val intLoad = new Load[Int, Unit] {
 The following will cause a *compile-time error* because you cannot connect an `Extract[String]` to a `Load[Int]`:
 
 ```tut:fail
-stringExtract ~> intLoad
+stringExtract to intLoad
 ```
 
 Only an `Extract[String]` can be connected to a `Load[String]`:
@@ -69,7 +65,7 @@ val stringLoad = new Load[String, Unit] {
     def load(in: String): Unit = println(in)
 }
 
-val etlPipeline = stringExtract ~> stringLoad
+val etlPipeline = stringExtract to stringLoad
 etlPipeline.unsafeRunSync()
 ```
 
@@ -100,8 +96,42 @@ val consoleLoad: Load[String, Unit] = new Load[String, Unit] {
     def load(in: String): Unit = println(in)
 }
 
-val transform: Transform[(Int, String, Double), String] = lift { case (int, str, dbl) => s"$int $str! $dbl" }
+val transform: Transform[(Int, String, Double), String] = Transform { case (int, str, dbl) => s"$int $str! $dbl" }
 
-val etlPipeline = stitchedExtract ~> transform ~> consoleLoad
+val etlPipeline = stitchedExtract via transform to consoleLoad
 etlPipeline.unsafeRunSync()
+```
+
+You can feed the data to multiple `Load` sinks as well:
+
+```tut
+val exclaimLoad: Load[String, String] = new Load[String, String] {
+    def load(in: String): String = s"$in!"
+}
+
+val combinedLoad: Load[String, (Unit, String)] = consoleLoad zip exclaimLoad
+val etlPipeline = stitchedExtract via transform to combinedLoad
+etlPipeline.unsafeRunSync()
+```
+
+### Sequencing pipelines ###
+
+You can compose ETL pipelines such that ETL pipeline A runs and feeds it result to ETL pipeline B:
+
+```tut
+import cats.syntax.flatMap._
+
+// An easy way to build an Extract[A] which takes a value you provide and pushes it down the pipeline
+def pureExtract[A](a: => A): Extract[A] = new Extract[A] {
+    override def produce: A = a
+}
+
+val etlPipelineA = stitchedExtract via transform to combinedLoad
+
+val etlPipelineB = etlPipelineA.flatMap { pipelineAResult: (Unit, String) =>
+    val strInput = pipelineAResult._2
+    pureExtract(strInput) to consoleLoad
+}
+
+etlPipelineB.unsafeRunSync()
 ```

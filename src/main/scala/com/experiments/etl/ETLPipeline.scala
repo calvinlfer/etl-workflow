@@ -1,18 +1,44 @@
 package com.experiments.etl
 
-trait ETLPipeline[A, B, FinStatus] {
-  def extract: Extract[A]
-  def transform: Transform[A, B]
-  def load: Load[B, FinStatus]
+import cats.{Functor, Monad}
+
+import scala.annotation.tailrec
+
+trait ETLPipeline[FinStatus] {
+  def execute(): FinStatus
 }
 
 object ETLPipeline {
-  implicit class ETLPipelineOps[Config, A, B, FinStatus](p: ETLPipeline[A, B, FinStatus]) {
-    def unsafeRunSync(): FinStatus = {
-      val a = p.extract.produce
-      val b = p.transform.transform(a)
-      val st = p.load.load(b)
-      st
+  implicit class ETLPipelineOps[FinStatus](p: ETLPipeline[FinStatus]) {
+    def unsafeRunSync(): FinStatus = p.execute()
+  }
+
+  implicit val functorForETLPipeline: Functor[ETLPipeline] = new Functor[ETLPipeline] {
+    override def map[A, B](fa: ETLPipeline[A])(f: A => B): ETLPipeline[B] =
+      new ETLPipeline[B] {
+        override def execute(): B = {
+          val a = fa.execute()
+          val b = f(a)
+          b
+        }
+      }
+  }
+
+  // Allow sequencing of dependent pipelines
+  implicit val monadForETLPipeline: Monad[ETLPipeline] = new Monad[ETLPipeline] {
+    override def pure[A](x: A): ETLPipeline[A] = new ETLPipeline[A] {
+      override def execute(): A = x
+    }
+
+    override def flatMap[A, B](fa: ETLPipeline[A])(f: A => ETLPipeline[B]): ETLPipeline[B] =
+      f(fa.execute())
+
+    @tailrec
+    override def tailRecM[A, B](a: A)(f: A => ETLPipeline[Either[A, B]]): ETLPipeline[B] = {
+      f(a).execute() match {
+        case Left(resA) => tailRecM(resA)(f)
+        case Right(resB) => pure(resB)
+      }
     }
   }
 }
