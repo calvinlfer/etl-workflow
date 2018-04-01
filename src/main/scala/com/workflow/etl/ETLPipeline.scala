@@ -1,6 +1,6 @@
 package com.workflow.etl
 
-import cats.{Functor, Monad}
+import cats.{ Functor, Monad }
 
 import scala.annotation.tailrec
 
@@ -34,11 +34,10 @@ object ETLPipeline {
       f(fa.execute())
 
     @tailrec
-    override def tailRecM[A, B](a: A)(f: A => ETLPipeline[Either[A, B]]): ETLPipeline[B] = {
+    override def tailRecM[A, B](a: A)(f: A => ETLPipeline[Either[A, B]]): ETLPipeline[B] =
       f(a).execute() match {
         case Left(resA) => tailRecM(resA)(f)
         case Right(resB) => pure(resB)
       }
-    }
   }
 }
