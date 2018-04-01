@@ -4,6 +4,8 @@ scala:
 - 2.12.5
 - 2.11.12
 sudo: false
+script:
+  - sbt tut test
 cache:
   directories:
   - $HOME/.ivy2/cache
