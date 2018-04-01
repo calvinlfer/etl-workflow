@@ -1,4 +1,4 @@
-package com.experiments.etl
+package com.workflow.etl
 
 import cats.Functor
 

@@ -1,7 +1,7 @@
 package example
 
 import cats.syntax.functor._
-import com.experiments.etl._
+import com.workflow.etl._
 
 object Example extends App {
   def pureExtract[A](a: => A): Extract[A] = new Extract[A] {
