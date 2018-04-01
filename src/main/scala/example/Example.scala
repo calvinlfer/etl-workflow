@@ -13,7 +13,11 @@ object Example extends App {
   }
   // simple pipeline
   val etlPipeline: ETLPipeline[Unit] =
-    pureExtract(10) via Transform[Int, Int] { x: Int => x + 10 } via Transform[Int, String] { x: Int => x.toString + "!" } to consoleLoad[String]
+    pureExtract(10) via Transform[Int, Int] { x: Int =>
+      x + 10
+    } via Transform[Int, String] { x: Int =>
+      x.toString + "!"
+    } to consoleLoad[String]
 
   etlPipeline.unsafeRunSync()
 
@@ -37,5 +41,5 @@ object Example extends App {
   evenFancierPipeline.unsafeRunSync()
 
   // super simple pipeline (Extract Load)
-  strExtract to consoleLoad[String] unsafeRunSync()
+  strExtract to consoleLoad[String] unsafeRunSync ()
 }
