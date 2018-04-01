@@ -9,7 +9,7 @@ through to a set of `Transformer`s that operate on the data and then to a `Load`
 which can be run to begin the workflow.
 
 ```tut
-import com.experiments.etl._
+import com.workflow.etl._
 
 // An easy way to build an Extract[A] which takes a value you provide and pushes it down the pipeline
 def pureExtract[A](a: => A): Extract[A] = new Extract[A] {
@@ -75,7 +75,7 @@ Here is an example of how to create a pipeline that stitches together multiple `
 through a single `Load` sink.
 
 ```tut
-import com.experiments.etl._
+import com.workflow.etl._
 import cats.syntax.functor._
 
 // An easy way to build an Extract[A] which takes a value you provide and pushes it down the pipeline
