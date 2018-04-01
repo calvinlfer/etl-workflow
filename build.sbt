@@ -1,5 +1,7 @@
 name := "etl-workflow"
 
+organization := "com.ghostsequence.etl"
+
 scalaVersion := "2.11.12"
 
 crossScalaVersions := Seq("2.12.5")
