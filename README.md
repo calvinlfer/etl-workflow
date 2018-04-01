@@ -1,6 +1,6 @@
 # ETL Workflow _(beta)_ #
 
-**ETL Workflow** is a simple and *opinionated* way to help you write/structure type-safe Extract-Transform-Load (**ETL**) 
+**ETL Workflow** is a simple and *opinionated* way to help you structure type-safe Extract-Transform-Load (**ETL**) 
 pipelines. This Domain Specific Language (DSL) is flexible enough to create linear pipelines which involve a single 
 `Extract` source and `Load` sink 
 
