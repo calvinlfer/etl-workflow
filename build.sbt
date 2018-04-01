@@ -4,7 +4,7 @@ organization := "com.ghostsequence.etl"
 
 scalaVersion := "2.11.12"
 
-crossScalaVersions := Seq("2.12.5")
+crossScalaVersions := Seq("2.12.5", scalaVersion.value)
 
 scalacOptions += "-Ypartial-unification"
 
