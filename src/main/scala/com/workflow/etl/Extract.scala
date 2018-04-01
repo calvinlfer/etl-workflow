@@ -7,6 +7,10 @@ trait Extract[+A] {
 }
 
 object Extract {
+  def apply[A](a: A): Extract[A] = new Extract[A] {
+    override def produce: A = a
+  }
+
   implicit class ExtractOps[A](e: Extract[A]) {
     def via[B](t: Transform[A, B]): Extract[B] = new Extract[B] {
       override def produce: B = {

@@ -6,12 +6,12 @@ crossScalaVersions := Seq("2.12.5")
 
 scalacOptions += "-Ypartial-unification"
 
-addCompilerPlugin(
-  "org.spire-math" % "kind-projector" % "0.9.6" cross CrossVersion.binary)
+addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.6" cross CrossVersion.binary)
 
 libraryDependencies ++= Seq(
-  "org.typelevel"         %% "cats-core"  % "1.1.0",
-  "com.github.scalaprops" %% "scalaprops" % "0.5.4" % Test
+  "org.typelevel"  %% "cats-core"  % "1.1.0",
+  "org.scalatest"  %% "scalatest"  % "3.0.5" % Test,
+  "org.scalacheck" %% "scalacheck" % "1.13.4" % Test
 )
 
 // Ignore failures when downloading sources and documentation for SBT plugins (but not the main artifact)

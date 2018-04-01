@@ -7,6 +7,10 @@ trait Load[-B, +Status] {
 }
 
 object Load {
+  def apply[A, B](fn: A => B): Load[A, B] = new Load[A, B] {
+    override def load(a: A): B = fn(a)
+  }
+
   implicit class LoadOps[A, AStatus](l: Load[A, AStatus]) {
     def zip[OtherStatus](l1: Load[A, OtherStatus]): Load[A, (AStatus, OtherStatus)] =
       new Load[A, (AStatus, OtherStatus)] {
