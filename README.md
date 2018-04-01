@@ -58,3 +58,14 @@ See [here](src/main/tut/Examples.md) for examples on how to get started
 - [Mario](https://github.com/intentmedia/mario)
 - [Akka Streams](https://doc.akka.io/docs/akka/2.5/stream/index.html)
 - [Monix Observables](https://monix.io)
+
+
+### Release process ###
+Make sure you have the correct [Bintray credentials](http://queirozf.com/entries/publishing-an-sbt-project-onto-bintray-an-example)
+before proceeding:
+
+```bash
+sbt release
+```
+
+This will automatically create a Git Tag and publish the library to Bintray for all Scala versions.
