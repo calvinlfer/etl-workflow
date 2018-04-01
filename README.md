@@ -1,7 +1,7 @@
 # ETL Workflow _(beta)_ #
 
 [![Build Status](https://travis-ci.org/calvinlfer/etl-workflow.svg?branch=master)](https://travis-ci.org/calvinlfer/etl-workflow)
- [ ![Download](https://api.bintray.com/packages/calvinlfer/maven/etl-workflow/images/download.svg) ](https://bintray.com/calvinlfer/maven/etl-workflow/_latestVersion)
+[![Download](https://api.bintray.com/packages/calvinlfer/maven/etl-workflow/images/download.svg) ](https://bintray.com/calvinlfer/maven/etl-workflow/_latestVersion)
 
 **ETL Workflow** is a simple and *opinionated* way to help you structure type-safe Extract-Transform-Load (**ETL**) 
 pipelines. This Domain Specific Language (DSL) is flexible enough to create linear pipelines which involve a single 
