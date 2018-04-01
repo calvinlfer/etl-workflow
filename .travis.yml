@@ -1,0 +1,10 @@
+language: scala
+jdk: oraclejdk8
+scala:
+- 2.12.5
+- 2.11.12
+sudo: false
+cache:
+  directories:
+  - $HOME/.ivy2/cache
+  - $HOME/.sbt/boot/
