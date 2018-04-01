@@ -28,7 +28,25 @@ have the ability to see an almost whiteboard-like representation of your pipelin
 
 ## Building Blocks ##
 
-TODO
+An ETL pipeline consists of the following building blocks:
+
+#### `Extract[A]` ####
+A producer of a single element of data whose type is `A`. This is the start of the ETL pipeline, you can connect this
+to `Transform`ers or to a `Load[A, AStatus]` to create an `ETLPipeline[AStatus]` that can be run.
+
+#### `Transform[A, B]` ####
+A transformer of a an element `A` to `B` you can attach these after an `Extract[A]` or before a `Load[B]`
+
+#### `Load[B, BStatus]` ####
+The end of the pipeline which takes data `B` flowing through the pipeline and consumes it and produces a status 
+`BStatus` which indicates whether consumption happens successfully
+
+#### `ETLPipeline[ConsumeStatus]` ####
+This represents the fully created ETL pipeline which can be executed using `unsafeRunSync()` to produce a 
+`ConsumeStatus` which indicates whether the pipeline has finished successfully.
+
+**Note:** At the end of the day, these building blocks are a reification of values and functions. You can build an 
+ETL pipeline out of functions and values but it helps to have a Domain Specific Language to increase readability.
 
 ## Examples ##
 See [here](src/main/tut/Examples.md) for examples on how to get started
