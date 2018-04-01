@@ -6,3 +6,6 @@ addSbtPlugin("com.github.gseitz" % "sbt-release" % "1.0.8")
 
 // formatting
 addSbtPlugin("com.lucidchart" % "sbt-scalafmt" % "1.15")
+
+// publishing to Bintray
+addSbtPlugin("org.foundweekends" % "sbt-bintray" % "0.5.4")

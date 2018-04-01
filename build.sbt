@@ -23,3 +23,5 @@ enablePlugins(TutPlugin)
 tutNameFilter := """.*\.(md)""".r
 
 scalafmtOnCompile := true
+
+licenses += ("MIT", url("https://opensource.org/licenses/MIT"))
