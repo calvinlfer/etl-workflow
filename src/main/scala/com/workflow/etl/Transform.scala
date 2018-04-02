@@ -1,6 +1,6 @@
 package com.workflow.etl
 
-import cats.Functor
+import cats.arrow.Profunctor
 
 trait Transform[-A, +B] {
   def transform(a: A): B
@@ -25,14 +25,15 @@ object Transform {
     override def transform(a: A): B = fn(a)
   }
 
-  implicit def functorForTransform[G]: Functor[Transform[G, ?]] = new Functor[Transform[G, ?]] {
-    override def map[A, B](fa: Transform[G, A])(f: A => B): Transform[G, B] =
-      new Transform[G, B] {
-        override def transform(g: G): B = {
-          val a = fa.transform(g)
-          val b = f(a)
-          b
-        }
+  implicit val profunctorForTransform: Profunctor[Transform] = new Profunctor[Transform] {
+    override def dimap[A, B, C, D](fab: Transform[A, B])(f: C => A)(g: B => D): Transform[C, D] = new Transform[C, D] {
+      override def transform(c: C): D = {
+        val `a -> b`: A => B = fab.transform
+        val a = f(c)
+        val b = `a -> b`(a)
+        val d = g(b)
+        d
       }
+    }
   }
 }

@@ -8,8 +8,6 @@ crossScalaVersions := Seq("2.12.5", scalaVersion.value)
 
 scalacOptions += "-Ypartial-unification"
 
-addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.6" cross CrossVersion.binary)
-
 libraryDependencies ++= Seq(
   "org.typelevel"  %% "cats-core"  % "1.1.0",
   "org.scalatest"  %% "scalatest"  % "3.0.5" % Test,
