@@ -1,6 +1,6 @@
 package com.workflow.etl
 
-import cats.Functor
+import cats.arrow.Profunctor
 
 trait Load[-B, +Status] {
   def load(b: B): Status
@@ -22,15 +22,15 @@ object Load {
       }
   }
 
-  implicit def functorForLoad[FixedInput]: Functor[Load[FixedInput, ?]] =
-    new Functor[Load[FixedInput, ?]] {
-      override def map[A, B](fa: Load[FixedInput, A])(f: A => B): Load[FixedInput, B] =
-        new Load[FixedInput, B] {
-          override def load(in: FixedInput): B = {
-            val a = fa.load(in)
-            val b = f(a)
-            b
-          }
-        }
+  implicit def profunctorForLoad: Profunctor[Load] = new Profunctor[Load] {
+    override def dimap[A, B, C, D](fab: Load[A, B])(f: C => A)(g: B => D): Load[C, D] = new Load[C, D] {
+      override def load(c: C): D = {
+        val `a -> b`: A => B = fab.load
+        val a = f(c)
+        val b = `a -> b`(a)
+        val d = g(b)
+        d
+      }
     }
+  }
 }
