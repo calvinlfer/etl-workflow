@@ -5,7 +5,7 @@ scala:
 - 2.11.12
 sudo: false
 script:
-  - sbt tut test
+  - sbt ++$TRAVIS_SCALA_VERSION tut test
 cache:
   directories:
   - $HOME/.ivy2/cache
